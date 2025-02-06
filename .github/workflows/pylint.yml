@@ -1,44 +1,53 @@
-name: Auto-Lint
+name: Run Tests & Coverage
 
 on:
   push:
-    branches: [ "main","Docker" ]
-  pull_request:
-    branches: [ "main","Docker" ]
+    branches:
+    - main
 
-permissions:
-  contents: write
+  pull_request:
+    branches:
+    - main
+
 
 jobs:
-  auto-lint:
+  test:
     runs-on: ubuntu-latest
-
-    steps:
-      - name: Checkout code
+    steps:   
+      - name: Checkout Repository
         uses: actions/checkout@v3
-        with:
-          persist-credentials: true
-
+      
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-
-      - name: Install linting tools
+         
+      - name: Install Dependencies
         run: |
-          pip install black isort flake8
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      - name: Auto-correct style with Black
+      - name: Run the project
         run: |
-          echo "Lancement du formatage automatique Black..."
-          black .
+          python main.py
+          
+      - name: Run Tests and Coverage
+        run: |
+          pytest --cov=fizzbuzz --cov-report=term-missing tests/
+       
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
 
-      - name: Auto-correct imports with isort
-        run: |
-          echo "Lancement du formatage automatique isort..."
-          isort .
+  pr-validation:
+      needs: test  # Cette étape dépend du succès des tests
+      if: github.event_name == 'pull_request'
+      runs-on: ubuntu-latest
 
-      - name: Check code with Flake8
-        run: |
-          echo "Analyse Flake8..."
-          flake8 .
+      steps:
+        - name: Validate_PR
+          run: echo "Tests passed! PR can be merged."
+
+  
