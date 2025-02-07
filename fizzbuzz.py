@@ -1,11 +1,9 @@
-def fizzbuzz(number):
-    result = ""
-    if number % 3 == 0 :
-        result += "Fizz"
-
-    if number % 5 == 0 :
-        result += "Buzz"
-
-    # Amine Bouffon
-    
-    return result if result else str(number)
+def fizzbuzz(n):
+    if n % 3 == 0 and n % 5 == 0:
+        return "FizzBuzz"
+    elif n % 3 == 0:
+        return "Fizz"
+    elif n % 5 == 0:
+        return "Buzz"
+    else:
+        return str(n)
