@@ -1,18 +1,54 @@
-name: Run Tests
-
-on: [push]
-
-
+name: Run Tests & Coverage
+ 
+on:
+  push:
+    branches:
+    - main
+    - feature/*
+ 
+  pull_request:
+    branches:
+    - main
+ 
+ 
 jobs:
   test:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
+    steps:  
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+     
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.x'
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-      - name: Run tests
-        run: python -m unittest tests/test_fizzbuzz.py
+          python-version: '3.9'
+         
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+ 
+      - name: Run the project
+        run: |
+          python main.py
+         
+      - name: Run Tests and Coverage
+        run: |
+          pytest --cov=fizzbuzz --cov-report=term-missing tests/
+       
+      - name: Upload Coverage Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: htmlcov/
+ 
+  pr-validation:
+      needs: test  
+      runs-on: ubuntu-latest
+      steps:
+        - name: Check Test status
+          if: ${{needs.test.result != 'success'}}
+          run: |
+            echo" Les tests ont échoué, la PR ne peut pas être fusionné"
+        - name: Validate_PR
+          run: echo "Tests passed! PR can be merged."
